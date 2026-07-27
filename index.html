@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<textarea id="input" dir="rtl" autocomplete="off"></textarea>
+</body>
+<head>
+<style>
+textarea {
+	line-height: 2;
+	font-size: 2rem;
+	height: 97vh;
+	width: -webkit-fill-available;
+	word-spacing: 16px;
+}
+</style>
+<script>
+	let shiftKeyIsDown = false;
+	const vowels = ['\u064B', '\u064D', '\u0650', `\u064C`, `\u064E`, `\u064F`];
+	const wordStarters = [undefined, ' ', '\t', '(', '<', '{', '¡', '?', '-', '~', '*'];
+	const wordEnders = [' ', '.', '\u060C', '\u2014', '-', '*', '&', ')', '>', '}', '!', '\u061F'];
+	const getShouldLengthenVowel = (char) => vowels.includes(char) || wordStarters.includes(char);
+	const getChar = (char, previousLetter) => {
+		const shouldLengthenVowel = getShouldLengthenVowel(previousLetter);
+		const followsStarter = wordStarters.includes(previousLetter);
+		const prefix = shouldLengthenVowel ? '\u0627' : '';
+		switch (char) {
+			case '1':
+				return '\u06F5';
+			case '2':
+				return 'ও';
+			case '3':
+				return 'ꨄ︎';
+			case '/':
+				return '\u061F';
+			case '"':
+				return '¡';
+			case ',':
+				return '\u060C';
+			case '=':
+				return '\u2014';
+			case ' ':
+				return shiftKeyIsDown ? '\t' : ' ';
+			case 'a':
+				return `${prefix}\u064B`;
+			case 'A':
+				return '\u0627';
+			case 'b':
+			case 'B':
+				return '\u0628';
+			case 'c':
+				return '\u0634';
+			case 'C':
+				return '\u0686';
+			case 'd':
+			case 'D':
+				return '\u062F';
+			case 'e':
+				return `${prefix}\u064D`;
+			case 'f':
+			case 'F':
+				return '\u0641';
+			case 'g':
+			case 'G':
+				return '\u063B';
+			case 'h':
+			case 'H':
+				return '\u0647';
+			case 'i':
+				if (followsStarter) return '\u0627\u0650';
+				else if (shouldLengthenVowel) return '\u06CC';
+				else return '\u0650';
+			case 'I':
+				return '\u06CC';
+			case 'j':
+				return '\u0698';
+			case 'J':
+				return '\u062C';
+			case 'k':
+			case 'K':
+				return `\u06A9`;
+			case 'l':
+			case 'L':
+				return `\u0644`;
+			case 'm':
+			case 'M':
+				return `\u0645`;
+			case 'n':
+			case 'N':
+				return `\u0646`;
+			case 'o':
+				return `${prefix}\u064C`;
+			case 'O':
+				return `${prefix}\u064C\u0648`;
+			case 'p':
+			case 'P':
+				return `\u067E`;
+			case 'q':
+			case 'Q':
+				return `\u063C`;
+			case 'r':
+			case 'R':
+				return `\u0631`;
+			case 's':
+			case 'S':
+				return `\u0633`;
+			case 't':
+			case 'T':
+				return `\u062A`;
+			case 'u':
+				if (followsStarter) return '\u0627\u064E';
+				else if (shouldLengthenVowel) return '\u0627'
+				else return '\u064E';
+			case 'U':
+				return `\u0627`;
+			case 'v':
+			case 'V':
+				return `\u06A4`;
+			case 'w':
+				return shouldLengthenVowel ? `\u0648` : '\u064F';
+			case 'W':
+				return `\u0648`;
+			case 'x':
+			case 'X':
+				return `\u0630`;
+			case 'y':
+			case 'Y':
+				return `\u062B`;
+			case 'z':
+			case 'Z':
+				return `\u0632`;
+			default:
+				return char;
+		}
+	};
+	const input = document.getElementById('input');
+	input.addEventListener("keyup", (event) => shiftKeyIsDown = event.shiftKey);
+	input.addEventListener("keydown", (event) => shiftKeyIsDown = event.shiftKey);
+	input.addEventListener("input", event => {
+		if (event.inputType === 'insertText' && event.data.length === 1) {
+			const index = input.selectionStart - 1;
+			const previousLetter = input.value[index - 1];
+			const char = getChar(event.data, previousLetter);
+			let selectionEnd = index + char.length;
+			if (wordEnders.includes(char)) {
+				if (previousLetter === '\u064E') {
+					const doubleAlif = input.value[index-2] === '\u0627';
+					input.value = input.value.substring(0, index - (doubleAlif ? 2 : 1))
+						.concat(`\u0627${char}`)
+						.concat(input.value.substring(index + 1, input.value.length));
+						selectionEnd -= (doubleAlif ? 1 : 0);
+				} else if (previousLetter === '\u0650') {
+					input.value = input.value = input.value.substring(0, index - 1)
+						.concat(`\u06CC${char}`)
+						.concat(input.value.substring(index + 1, input.value.length));
+				} else if (previousLetter === '\u064F') {
+					input.value = input.value = input.value.substring(0, index - 1)
+						.concat(`\u0648${char}`)
+						.concat(input.value.substring(index + 1, input.value.length));
+				} else {
+					input.value = input.value.substring(0, index)
+						.concat(char)
+						.concat(input.value.substring(index + 1, input.value.length));
+				} 
+			} else {
+				input.value = input.value.substring(0, index)
+					.concat(char)
+					.concat(input.value.substring(index + 1, input.value.length));
+			}
+			input.setSelectionRange(index + char.length, selectionEnd);
+		}
+	});
+</script>
+</head>
+</html>
