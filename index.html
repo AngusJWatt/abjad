@@ -16,8 +16,8 @@ textarea {
 <script>
 	let shiftKeyIsDown = false;
 	const vowels = ['\u064B', '\u064D', '\u0650', `\u064C`, `\u064E`, `\u064F`];
-	const wordStarters = [undefined, ' ', '\t', '(', '<', '{', '¡', '?', '-', '~', '*'];
-	const wordEnders = [' ', '.', '\u060C', '\u2014', '-', '*', '&', ')', '>', '}', '!', '\u061F'];
+	const wordStarters = [undefined, ' ', '(', '<', '{', '¡', '?', '-', '~', '*'];
+	const wordEnders = [' ', '.', '\u060C', '\u2014', '\t', '\n', '-', '*', '&', ')', '>', '}', '!', '\u061F'];
 	const getShouldLengthenVowel = (char) => vowels.includes(char) || wordStarters.includes(char);
 	const getChar = (char, previousLetter) => {
 		const shouldLengthenVowel = getShouldLengthenVowel(previousLetter);
@@ -38,8 +38,6 @@ textarea {
 				return '\u060C';
 			case '=':
 				return '\u2014';
-			case ' ':
-				return shiftKeyIsDown ? '\t' : ' ';
 			case 'a':
 				return `${prefix}\u064B`;
 			case 'A':
@@ -136,10 +134,10 @@ textarea {
 	input.addEventListener("keyup", (event) => shiftKeyIsDown = event.shiftKey);
 	input.addEventListener("keydown", (event) => shiftKeyIsDown = event.shiftKey);
 	input.addEventListener("input", event => {
-		if (event.inputType === 'insertText' && event.data.length === 1) {
+		if ((event.inputType === 'insertText' || event.inputType === 'insertLineBreak')) {
 			const index = input.selectionStart - 1;
 			const previousLetter = input.value[index - 1];
-			const char = getChar(event.data, previousLetter);
+			const char = getChar(event.data || (shiftKeyIsDown ? '\t' : '\n'), previousLetter);
 			let selectionEnd = index + char.length;
 			if (wordEnders.includes(char)) {
 				if (previousLetter === '\u064E') {
@@ -149,11 +147,11 @@ textarea {
 						.concat(input.value.substring(index + 1, input.value.length));
 						selectionEnd -= (doubleAlif ? 1 : 0);
 				} else if (previousLetter === '\u0650') {
-					input.value = input.value = input.value.substring(0, index - 1)
+					input.value = input.value.substring(0, index - 1)
 						.concat(`\u06CC${char}`)
 						.concat(input.value.substring(index + 1, input.value.length));
 				} else if (previousLetter === '\u064F') {
-					input.value = input.value = input.value.substring(0, index - 1)
+					input.value = input.value.substring(0, index - 1)
 						.concat(`\u0648${char}`)
 						.concat(input.value.substring(index + 1, input.value.length));
 				} else {
@@ -172,3 +170,4 @@ textarea {
 </script>
 </head>
 </html>
+
